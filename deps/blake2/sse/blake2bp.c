@@ -228,7 +228,6 @@ int blake2bp( uint8_t *out, const void *in, const void *key, uint8_t outlen, uin
     uint64_t inlen__ = inlen;
     const uint8_t *in__ = ( const uint8_t * )in;
     in__ += id__ * BLAKE2B_BLOCKBYTES;
-
     while( inlen__ >= PARALLELISM_DEGREE * BLAKE2B_BLOCKBYTES )
     {
       blake2b_update( S[id__], in__, BLAKE2B_BLOCKBYTES );
@@ -293,4 +292,3 @@ int main( int argc, char **argv )
   return 0;
 }
 #endif
-

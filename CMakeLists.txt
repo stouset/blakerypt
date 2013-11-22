@@ -11,30 +11,41 @@
 # Install:
 # > cmake --build . --target install
 
-CMAKE_MINIMUM_REQUIRED(VERSION 2.6)
+CMAKE_MINIMUM_REQUIRED(VERSION 2.8)
 PROJECT(blakerypt C)
 
-# Compilation Options
-OPTION( BUILD_SHARED_LIBS "Build Shared Library (OFF for Static)" ON  )
-OPTION( PROFILE           "Generate profiling information"        OFF )
+OPTION(BUILD_SHARED_LIBS "Build as a shared library" ON)
+
+IF(NOT CMAKE_BUILD_TYPE)
+  SET(CMAKE_BUILD_TYPE "Debug")
+ENDIF()
 
 INCLUDE_DIRECTORIES(src include)
+INCLUDE_DIRECTORIES(deps/blake2/sse)
 
-FILE(GLOB SRC_H          include/*.h)
-FILE(GLOB SRC_BLAKERYPT src/*.c src/*.h)
+FILE(GLOB SRC_BLAKERYPT src/*.c)
+FILE(GLOB SRC_BLAKE2B   deps/blake2/sse/blake2b.c)
 
-ADD_LIBRARY(blakerypt_so ${SRC_H} ${SRC_BLAKERYPT})
-ADD_EXECUTABLE(blakerypt ${SRC_H} ${SRC_BLAKERYPT})
+ADD_LIBRARY(blake2b_o    OBJECT ${SRC_BLAKE2B})
+ADD_LIBRARY(blakerypt_so        ${SRC_BLAKERYPT} $<TARGET_OBJECTS:blake2b_o>)
 
-# Compile Flags
-SET(CMAKE_C_FLAGS       "-Wall -Wextra -Wstrict-aliasing=2 -Wstrict-prototypes -pedantic -std=c99 ${CMAKE_C_FLAGS}")
-SET(CMAKE_C_FLAGS_DEBUG "-g -O0")
+SET_TARGET_PROPERTIES(blakerypt_so PROPERTIES OUTPUT_NAME blakerypt)
 
-IF (BUILD_SHARED_LIBS)
-   SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fvisibility=hidden -fPIC")
-ENDIF ()
+ADD_EXECUTABLE(blakerypt main.c)
+TARGET_LINK_LIBRARIES(blakerypt blakerypt_so)
 
-IF (PROFILE)
-   SET(CMAKE_C_FLAGS          "-pg ${CMAKE_C_FLAGS}")
-   SET(CMAKE_EXE_LINKER_FLAGS "-pg ${CMAKE_EXE_LINKER_FLAGS}")
-ENDIF ()
+SET(CMAKE_C_WARNINGS
+        "-Werror" "-Wall" "-Wextra" "-Wpedantic"
+        "-Wformat=2" "-Wshadow" "-Wwrite-strings" "-Wstrict-prototypes"
+        "-Wold-style-definition" "-Wredundant-decls" "-Wnested-externs"
+        "-Wmissing-include-dirs"
+)
+
+SET(CMAKE_C_EXTRA
+        "-std=c11" "-march=native" "-fvisibility=hidden"
+)
+
+STRING(REPLACE ";" " " CMAKE_C_WARNINGS "${CMAKE_C_WARNINGS}")
+STRING(REPLACE ";" " " CMAKE_C_EXTRA    "${CMAKE_C_EXTRA}")
+
+SET(CMAKE_C_FLAGS "${CMAKE_C_EXTRA} ${CMAKE_C_WARNINGS} ${CMAKE_C_FLAGS}")
