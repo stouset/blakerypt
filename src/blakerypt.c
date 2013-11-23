@@ -240,11 +240,16 @@ int blakerypt_core(
 /* compile-time self-testing */
 
 _Static_assert(
-     sizeof(blakerypt_salt) == BLAKE2B_SALTBYTES,
-     "the blakerypt_salt struct must be the same size as a BLAKE2B salt"
+    sizeof(blakerypt_salt) == BLAKE2B_SALTBYTES,
+    "the blakerypt_salt struct must be the same size as a BLAKE2B salt"
 );
 
 _Static_assert(
-     sizeof(size_t) <= sizeof(uint64_t),
-     "size_t's must be storable inside a uint64_t for counting threads"
+    sizeof(size_t) <= sizeof(uint64_t),
+    "size_t's must be storable inside a uint64_t for counting threads"
+);
+
+_Static_assert(
+    BLAKERYPT_BLOCK_BYTES > 1,
+    "block size must be greater than one to avoid rom_index overflow"
 );
