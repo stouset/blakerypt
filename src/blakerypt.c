@@ -245,11 +245,6 @@ _Static_assert(
 );
 
 _Static_assert(
-    sizeof(size_t) <= sizeof(uint64_t),
-    "size_t's must be storable inside a uint64_t for counting threads"
-);
-
-_Static_assert(
     BLAKERYPT_BLOCK_BYTES > 1,
     "block size must be greater than one to avoid rom_index overflow"
 );
