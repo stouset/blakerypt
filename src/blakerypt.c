@@ -36,6 +36,7 @@ typedef struct __blakerypt_rom {
 } blakerypt_rom;
 
 #pragma pack(push, 1)
+/* TODO: endianness of key_id */
 typedef struct __blakerypt_salt {
     union {
         struct {
@@ -115,7 +116,8 @@ static int blakerypt_rom_mix(
                 sizeof(size_t), sizeof(size_t), 0
             );
 
-            // TODO: explicitly define this in terms of endianness
+            /* TODO: explicitly define this in terms of endianness */
+            /* TODO: does this mod have bias? */
             rom_index = *((size_t *)rom_index_hash) % rom->blocks;
 
             blake2b_update(
