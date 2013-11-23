@@ -111,8 +111,8 @@ static int blakerypt_rom_mix(
     for(size_t j = 0; j < iterations; ++j) {
         for(size_t k = 0; k < rom->blocks; ++k) {
             blake2b(
-                rom_index_hash,      rom_index_hash,      NULL,
-                BLAKERYPT_KEY_BYTES, BLAKERYPT_KEY_BYTES, 0
+                rom_index_hash, rom_index_hash, NULL,
+                sizeof(size_t), sizeof(size_t), 0
             );
 
             // TODO: explicitly define this in terms of endianness
