@@ -191,10 +191,6 @@ int blakerypt_core(
     uint8_t const key[const restrict static BLAKERYPT_KEY_BYTES],
     blakerypt_param const * const restrict context
 ) {
-    /* before anything else, ensure the output is zeroed out in case
-     * we fail before doing any work */
-    memset(out, 0, BLAKERYPT_OUT_BYTES);
-
     /* fail if f_time doesn't have us looping at least once */
     if (context->f_time == 0)
         goto err;
@@ -227,6 +223,10 @@ int blakerypt_core(
     blakerypt_rom_free(rom);
 
  err:
+    /* ensure the output is zeroed out if we fail, to avoid garbage
+     * left in the output */
+    memset(out, 0, BLAKERYPT_OUT_BYTES);
+
     return -1;
 }
 
