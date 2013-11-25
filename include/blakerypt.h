@@ -17,8 +17,11 @@
 
 #pragma GCC visibility push(default)
 
-enum blakerypt_constant {
-    BLAKERYPT_BLOCK_BYTES    = BLAKE2B_OUTBYTES,
+#define BLAKERYPT_BLOCK_FACTOR 8
+#define BLAKERYPT_BLOCK_COUNT  (2 * BLAKERYPT_BLOCK_FACTOR)
+
+enum blakerypt_sizes {
+    BLAKERYPT_BLOCK_BYTES    = (BLAKE2B_OUTBYTES * BLAKERYPT_BLOCK_COUNT),
     BLAKERYPT_OUT_BYTES      = BLAKE2B_OUTBYTES,
     BLAKERYPT_KEY_BYTES      = sizeof(size_t),
     BLAKERYPT_SALT_BYTES     = BLAKE2B_SALTBYTES,
@@ -39,9 +42,9 @@ typedef struct __blakerypt_param {
 } blakerypt_param;
 
 int blakerypt_core(
-    uint8_t               out[restrict static BLAKERYPT_OUT_BYTES],
+    uint8_t               out[restrict static BLAKERYPT_BLOCK_BYTES],
     uint8_t         const in[restrict static BLAKERYPT_BLOCK_BYTES],
-    uint8_t         const key[restrict static BLAKERYPT_KEY_BYTES],
+    uint8_t         const key[restrict static BLAKERYPT_BLOCK_BYTES],
     blakerypt_param const * restrict context
 );
 
