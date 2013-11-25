@@ -21,7 +21,7 @@ int main(void) {
     int const ret = blakerypt_core(
         hash, in, key, &(blakerypt_param){
         .mode          = BLAKERYPT_MODE_HASH_PASSWORD,
-        .f_time        = 0x01,
+        .f_time        = 0x00,
         .f_space       = 0x1a
     });
 

@@ -16,19 +16,14 @@
 #include "blakerypt.h"
 #include "blake2.h"
 
-/* returns the maximum size that can be stored in a given number of
- * bits; left-shifting and subtracting one can overflow, so we start
- * with the maximum size and downshift by an appropriate amount */
-#define BITS_TO_MAX_SIZE(bits) \
-    (size_t const)(SIZE_MAX >> (sizeof(size_t) * 8 - (bits)))
+/* converts a size factor into a size with exponential growth */
+#define BITS_TO_MAX_SIZE(factor) \
+    (1 << factor)
 
-/* returns the maximum number of items of the given size that can be
- * stored in a buffer whose size is the maximum size storable in the
- * given number of bits; this is probably one fewer than you suspect,
- * for instance, the maximum size storable in 4 bits is 15, and a
- * buffer 15 bits large can only store 3 4-byte items */
-#define BITS_TO_MAX_COUNT(bits, size) \
-    (size_t const)(BITS_TO_MAX_SIZE((bits)) / (size))
+/* returns the maximum number of items of the provided size capable of
+   being stored in a buffer with the provided size factor */
+#define BITS_TO_MAX_COUNT(factor, size) \
+    (size_t const)(BITS_TO_MAX_SIZE((factor)) / (size))
 
 #define BLOCK_XOR(out, in1, in2, size)                                       \
     do {                                                                     \
@@ -137,7 +132,7 @@ static int blakerypt_rom_mix(
                 rom_index_hash + (
                     (j % BLAKERYPT_BLOCK_COUNT) * BLAKE2B_OUTBYTES
                 )
-            ) % rom->blocks + 1;
+            ) % rom->blocks;
 
             BLOCK_XOR(out, out, rom->rom[rom_index], BLAKERYPT_BLOCK_BYTES);
 
@@ -208,16 +203,12 @@ int blakerypt_core(
     uint8_t const key[const restrict static BLAKERYPT_BLOCK_BYTES],
     blakerypt_param const * const restrict context
 ) {
-    /* fail if f_time doesn't have us looping at least once */
-    if (context->f_time == 0)
+    /* fail if we can't represent (2 << f_time) in a size_t */
+    if (context->f_time > sizeof(size_t) * 8 - 1)
         goto err;
 
-    /* fail if we can't represent (2 << f_time - 1) in a size_t */
-    if (context->f_time > sizeof(size_t) * 8)
-        goto err;
-
-    /* fail if we can't represent (2 << f_space - 1) in a size_t */
-    if (context->f_space > sizeof(size_t) * 8)
+    /* fail if we can't represent (2 << f_space) in a size_t */
+    if (context->f_space > sizeof(size_t) * 8 - 1)
         goto err;
 
     blakerypt_rom const * const rom = blakerypt_rom_new(
