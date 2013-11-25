@@ -30,11 +30,11 @@
 #define BITS_TO_MAX_COUNT(bits, size) \
     (size_t const)(BITS_TO_MAX_SIZE((bits)) / (size))
 
-#define BLOCK_XOR(out, in1, in2, size)                                      \
-    do {                                                                    \
-        for(size_t block_xor_i_ = 0; block_xor_i_ < size; ++block_xor_i_) { \
-            out[block_xor_i_] = in1[block_xor_i_] ^ in2[block_xor_i_];      \
-        }                                                                   \
+#define BLOCK_XOR(out, in1, in2, size)                                       \
+    do {                                                                     \
+        for(size_t block_xor_i_ = 0; block_xor_i_ < size; ++block_xor_i_) {  \
+            (out)[block_xor_i_] = (in1)[block_xor_i_] ^ (in2)[block_xor_i_]; \
+        }                                                                    \
     } while(0);
 
 typedef struct __blakerypt_rom {
