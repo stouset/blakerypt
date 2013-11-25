@@ -35,7 +35,7 @@ ADD_EXECUTABLE(blakerypt main.c)
 TARGET_LINK_LIBRARIES(blakerypt blakerypt_so)
 
 SET(CMAKE_C_WARNINGS
-        "-Werror" "-Wall" "-Wextra" "-Wpedantic"
+        "-Werror" "-Wall" "-Wextra" "-pedantic"
         "-Wformat=2" "-Wshadow" "-Wwrite-strings" "-Wstrict-prototypes"
         "-Wold-style-definition" "-Wredundant-decls" "-Wnested-externs"
         "-Wmissing-include-dirs"
