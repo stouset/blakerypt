@@ -43,8 +43,8 @@ typedef struct __blakerypt_param {
 
 int blakerypt_core(
     uint8_t               out[restrict static BLAKERYPT_BLOCK_BYTES],
-    uint8_t         const in[restrict static BLAKERYPT_BLOCK_BYTES],
     uint8_t         const key[restrict static BLAKERYPT_BLOCK_BYTES],
+    uint8_t         const in[restrict static BLAKERYPT_BLOCK_BYTES],
     blakerypt_param const * restrict context
 );
 

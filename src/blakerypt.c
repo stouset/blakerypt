@@ -199,8 +199,8 @@ static void blakerypt_rom_free(
 
 int blakerypt_core(
     uint8_t       out[const restrict static BLAKERYPT_BLOCK_BYTES],
-    uint8_t const in[const restrict static BLAKERYPT_BLOCK_BYTES],
     uint8_t const key[const restrict static BLAKERYPT_BLOCK_BYTES],
+    uint8_t const in[const restrict static BLAKERYPT_BLOCK_BYTES],
     blakerypt_param const * const restrict context
 ) {
     /* fail if we can't represent (2 << f_time) in a size_t */

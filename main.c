@@ -19,7 +19,7 @@ int main(void) {
     /* memory used is O(2^f_space), time used is O(2^f_time *
      * 2^f_space) */
     int const ret = blakerypt_core(
-        hash, in, key, &(blakerypt_param){
+        hash, key, in, &(blakerypt_param){
         .mode          = BLAKERYPT_MODE_HASH_PASSWORD,
         .f_time        = 0x00,
         .f_space       = 0x1a
