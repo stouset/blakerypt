@@ -51,14 +51,16 @@ static void blakerypt_block_mix(
 
     /* simplify indexing logic by treating the input and output blocks
      * as arrays of native blake2b output size */
-    uint8_t in_a[BLAKERYPT_BLOCK_COUNT][BLAKE2B_OUTBYTES];
-    uint8_t out_a[BLAKERYPT_BLOCK_COUNT][BLAKE2B_OUTBYTES];
+    uint8_t (*in_a)[BLAKE2B_OUTBYTES]  = (uint8_t (*)[BLAKE2B_OUTBYTES]) in;
+    uint8_t (*out_a)[BLAKE2B_OUTBYTES] = (uint8_t (*)[BLAKE2B_OUTBYTES]) out;
 
-    /* the input is originally also copied to the output, since the
-     * "last" block of the output is actually used in the first
-     * iteration of the loop */
-    memcpy(in_a,  in, BLAKERYPT_BLOCK_BYTES);
-    memcpy(out_a, in, BLAKERYPT_BLOCK_BYTES);
+    /* the last index of the input is originally copied to the output,
+       since it is used in the first iteration of the loop */
+    memcpy(
+        out_a + BLAKERYPT_BLOCK_COUNT - 1,
+        in_a  + BLAKERYPT_BLOCK_COUNT - 1,
+        BLAKE2B_OUTBYTES
+    );
 
     for (
         size_t i_in = 0, i_out = BLAKERYPT_BLOCK_COUNT - 1, i_out_last = 0;
@@ -80,8 +82,6 @@ static void blakerypt_block_mix(
             BLAKE2B_OUTBYTES, BLAKE2B_OUTBYTES, 0
         );
     }
-
-    memcpy(out, out_a, BLAKERYPT_BLOCK_BYTES);
 }
 
 static void blakerypt_rom_init(
@@ -108,6 +108,7 @@ static int blakerypt_rom_mix(
     if (iterations == 0)
         goto err;
 
+    uint8_t out_tmp[BLAKERYPT_BLOCK_BYTES];
     uint8_t rom_index_hash[BLAKERYPT_BLOCK_BYTES];
     size_t  rom_index;
 
@@ -130,9 +131,14 @@ static int blakerypt_rom_mix(
                 )
             ) % rom->blocks;
 
-            BLOCK_XOR(out, out, rom->rom[rom_index], BLAKERYPT_BLOCK_BYTES);
+            BLOCK_XOR(
+                out_tmp,
+                out,
+                rom->rom[rom_index % rom->blocks],
+                BLAKERYPT_BLOCK_BYTES
+            );
 
-            blakerypt_block_mix(out, out);
+            blakerypt_block_mix(out, out_tmp);
         }
     }
 
