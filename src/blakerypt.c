@@ -278,3 +278,8 @@ _Static_assert(
     BLAKERYPT_BLOCK_BYTES > 1,
     "block size must be greater than one to avoid rom_index overflow"
 );
+
+_Static_assert(
+    BLAKERYPT_BLOCK_BYTES == BLAKERYPT_BLOCK_COUNT * BLAKE2B_OUTBYTES,
+    "a block should be the same size as block_count hash outputs"
+);
