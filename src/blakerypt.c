@@ -25,17 +25,21 @@
 #define BITS_TO_MAX_COUNT(factor, size) \
     (size_t const)(BITS_TO_MAX_SIZE((factor)) / (size))
 
-#define BLOCK_XOR(out, in1, in2, size)                                       \
-    do {                                                                     \
-        for(size_t block_xor_i_ = 0; block_xor_i_ < size; ++block_xor_i_) {  \
-            (out)[block_xor_i_] = (in1)[block_xor_i_] ^ (in2)[block_xor_i_]; \
-        }                                                                    \
-    } while(0);
-
 typedef struct __blakerypt_rom {
     size_t        blocks;
     uint8_t const (*rom)[BLAKERYPT_BLOCK_BYTES];
 } blakerypt_rom;
+
+static inline void blakerypt_block_xor(
+    uint8_t       * const restrict out,
+    uint8_t const * const restrict in1,
+    uint8_t const * const restrict in2,
+    size_t  const                  count
+) {
+    for (size_t i = 0; i < count; ++i) {
+        out[i] = in1[i] ^ in2[i];
+    }
+}
 
 static void blakerypt_block_mix(
     uint8_t       out[const static BLAKERYPT_BLOCK_BYTES],
@@ -70,7 +74,7 @@ static void blakerypt_block_mix(
         i_out_last = i_out;
         i_out      = SHUFFLE(i_in);
 
-        BLOCK_XOR(
+        blakerypt_block_xor(
             out_a[i_out],
             out_a[i_out_last],
             in_a[i_in],
@@ -131,7 +135,7 @@ static int blakerypt_rom_mix(
                 )
             ) % rom->blocks;
 
-            BLOCK_XOR(
+            blakerypt_block_xor(
                 out_tmp,
                 out,
                 rom->rom[rom_index % rom->blocks],
