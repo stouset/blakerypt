@@ -12,6 +12,7 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <sys/mman.h>
 
 #include "blakerypt.h"
 #include "blake2.h"
@@ -116,6 +117,15 @@ static int blakerypt_rom_mix(
     uint8_t rom_index_hash[BLAKERYPT_BLOCK_BYTES];
     size_t  rom_index;
 
+    /* fail if we can't lock sensitive data into memory */
+    if (
+        mlock(out_tmp,        sizeof(out_tmp))        ||
+        mlock(rom_index_hash, sizeof(rom_index_hash)) ||
+        mlock(&rom_index,     sizeof(rom_index))
+    ) {
+        goto err;
+    }
+
     /* seed the index hash with the provided key */
     memcpy(rom_index_hash, key, BLAKERYPT_BLOCK_BYTES);
 
@@ -146,6 +156,10 @@ static int blakerypt_rom_mix(
         }
     }
 
+    memset(out_tmp,        0, sizeof(out_tmp));
+    memset(rom_index_hash, 0, sizeof(rom_index_hash));
+    memset(&rom_index,     0, sizeof(rom_index));
+
     return 0;
 
  err:
@@ -171,6 +185,10 @@ static blakerypt_rom const * blakerypt_rom_new(
     /* fail if we didn't allocate any ROM */
     if (rom == NULL)
         goto err;
+
+    /* fail if we can't lock the rom's pages into memory */
+    if (mlock(rom, blocks * BLAKERYPT_BLOCK_BYTES))
+        goto err1;
 
     blakerypt_rom * const ret = malloc(
         sizeof(blakerypt_rom)
@@ -199,8 +217,9 @@ static blakerypt_rom const * blakerypt_rom_new(
 static void blakerypt_rom_free(
     blakerypt_rom const * const rom
 ) {
-    free((void *) rom->rom);
-    free((void *) rom);
+    memset((void *) rom->rom, 0, rom->blocks * BLAKERYPT_BLOCK_BYTES);
+    free(  (void *) rom->rom);
+    free(  (void *) rom);
 }
 
 int blakerypt_core(
@@ -209,6 +228,15 @@ int blakerypt_core(
     uint8_t const in[const restrict static BLAKERYPT_BLOCK_BYTES],
     blakerypt_param const * const restrict context
 ) {
+    /* fail if we can't lock the pages for sensitive data into memory */
+    if (
+        mlock(out, BLAKERYPT_BLOCK_BYTES) ||
+        mlock(key, BLAKERYPT_BLOCK_BYTES) ||
+        mlock(in,  BLAKERYPT_BLOCK_BYTES)
+    ) {
+        goto err;
+    }
+
     /* fail if we can't represent (2 << f_time) in a size_t */
     if (context->f_time > sizeof(size_t) * 8 - 1)
         goto err;
