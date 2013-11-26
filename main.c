@@ -14,7 +14,7 @@ int main(void) {
     /* a secret "session key" to determine the order in which the
      * iterated hashing accesses the ROM; in the case of password
      * hashing, should be something like MAC(secret_key, password) */
-    uint8_t const key[BLAKERYPT_BLOCK_BYTES]  = { 0 };
+    uint8_t const key[BLAKERYPT_KEY_BYTES]  = { 0 };
 
     /* memory used is O(2^f_space), time used is O(2^f_time *
      * 2^f_space) */

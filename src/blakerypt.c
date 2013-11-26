@@ -104,7 +104,7 @@ static void blakerypt_rom_init(
 static int blakerypt_rom_mix(
     blakerypt_rom   const * const rom,
     uint8_t                       out [const restrict static BLAKERYPT_BLOCK_BYTES],
-    uint8_t                 const key [const restrict static BLAKERYPT_BLOCK_BYTES],
+    uint8_t                 const key [const restrict static BLAKERYPT_KEY_BYTES],
     blakerypt_param const * const context
 ) {
     size_t const iterations = BITS_TO_MAX_SIZE(context->f_time);
@@ -113,37 +113,30 @@ static int blakerypt_rom_mix(
     if (iterations == 0)
         goto err;
 
+    /* TODO: define rom_index in terms of endianness */
     uint8_t out_tmp[BLAKERYPT_BLOCK_BYTES];
-    uint8_t rom_index_hash[BLAKERYPT_BLOCK_BYTES];
-    size_t  rom_index;
+    size_t  rom_index      = 0;
+    uint8_t *rom_index_ptr = (uint8_t *) &rom_index;
 
     /* fail if we can't lock sensitive data into memory */
     if (
-        mlock(out_tmp,        sizeof(out_tmp))        ||
-        mlock(rom_index_hash, sizeof(rom_index_hash)) ||
-        mlock(&rom_index,     sizeof(rom_index))
+        mlock(out_tmp,    sizeof(out_tmp))   ||
+        mlock(&rom_index, sizeof(rom_index))
     ) {
         goto err;
     }
 
-    /* seed the index hash with the provided key */
-    memcpy(rom_index_hash, key, BLAKERYPT_BLOCK_BYTES);
-
-    /* clear the output buffer so we can use it as progressive storage */
+    /* clear the output buffer so it can be used with an initial XOR */
     memset(out, 0, BLAKERYPT_BLOCK_BYTES);
 
     for(size_t i = 0; i < iterations; ++i) {
         for(size_t j = 0; j < rom->blocks; ++j) {
-            if (j % BLAKERYPT_BLOCK_COUNT == 0) {
-                blakerypt_block_mix(rom_index_hash, rom_index_hash);
-            }
+            rom_index = rom->blocks * j + i;
 
-            /* TODO: explicitly define this in terms of endianness */
-            rom_index = *(size_t *) (
-                rom_index_hash + (
-                    (j % BLAKERYPT_BLOCK_COUNT) * BLAKE2B_OUTBYTES
-                )
-            ) % rom->blocks;
+            blake2b(
+                rom_index_ptr,         rom_index_ptr,         key,
+                sizeof(rom_index_ptr), sizeof(rom_index_ptr), BLAKERYPT_KEY_BYTES
+            );
 
             blakerypt_block_xor(
                 out_tmp,
@@ -156,9 +149,8 @@ static int blakerypt_rom_mix(
         }
     }
 
-    memset(out_tmp,        0, sizeof(out_tmp));
-    memset(rom_index_hash, 0, sizeof(rom_index_hash));
-    memset(&rom_index,     0, sizeof(rom_index));
+    memset(out_tmp,    0, sizeof(out_tmp));
+    memset(&rom_index, 0, sizeof(rom_index));
 
     return 0;
 
@@ -224,14 +216,14 @@ static void blakerypt_rom_free(
 
 int blakerypt_core(
     uint8_t       out[const restrict static BLAKERYPT_BLOCK_BYTES],
-    uint8_t const key[const restrict static BLAKERYPT_BLOCK_BYTES],
+    uint8_t const key[const restrict static BLAKERYPT_KEY_BYTES],
     uint8_t const in[const restrict static BLAKERYPT_BLOCK_BYTES],
     blakerypt_param const * const restrict context
 ) {
     /* fail if we can't lock the pages for sensitive data into memory */
     if (
         mlock(out, BLAKERYPT_BLOCK_BYTES) ||
-        mlock(key, BLAKERYPT_BLOCK_BYTES) ||
+        mlock(key, BLAKERYPT_KEY_BYTES)   ||
         mlock(in,  BLAKERYPT_BLOCK_BYTES)
     ) {
         goto err;
@@ -277,6 +269,11 @@ int blakerypt_core(
 _Static_assert(
     BLAKERYPT_BLOCK_BYTES > 1,
     "block size must be greater than one to avoid rom_index overflow"
+);
+
+_Static_assert(
+    BLAKERYPT_KEY_BYTES > sizeof(size_t),
+    "key size must be at least large enough to hold any array index"
 );
 
 _Static_assert(

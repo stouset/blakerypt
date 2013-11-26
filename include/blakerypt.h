@@ -23,7 +23,7 @@
 enum blakerypt_sizes {
     BLAKERYPT_BLOCK_BYTES    = BLAKE2B_OUTBYTES * BLAKERYPT_BLOCK_COUNT,
     BLAKERYPT_OUT_BYTES      = BLAKE2B_OUTBYTES,
-    BLAKERYPT_KEY_BYTES      = BLAKE2B_OUTBYTES,
+    BLAKERYPT_KEY_BYTES      = BLAKE2B_KEYBYTES,
     BLAKERYPT_SALT_BYTES     = BLAKE2B_SALTBYTES,
     BLAKERYPT_PERSONAL_BYTES = BLAKE2B_PERSONALBYTES
 };
@@ -43,7 +43,7 @@ typedef struct __blakerypt_param {
 
 int blakerypt_core(
     uint8_t               out[restrict static BLAKERYPT_BLOCK_BYTES],
-    uint8_t         const key[restrict static BLAKERYPT_BLOCK_BYTES],
+    uint8_t         const key[restrict static BLAKERYPT_KEY_BYTES],
     uint8_t         const in[restrict static BLAKERYPT_BLOCK_BYTES],
     blakerypt_param const * restrict context
 );
