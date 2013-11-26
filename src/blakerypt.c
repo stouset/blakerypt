@@ -124,10 +124,6 @@ static int blakerypt_rom_mix(
             }
 
             /* TODO: explicitly define this in terms of endianness */
-
-            /* mod by rom->blocks + 1 so it is a power of 2; this is
-             * guaranteed not to overflow if BLAKERYPT_BLOCK_SIZE is
-             * greater than 1 */
             rom_index = *(size_t *) (
                 rom_index_hash + (
                     (j % BLAKERYPT_BLOCK_COUNT) * BLAKE2B_OUTBYTES
