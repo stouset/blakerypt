@@ -21,24 +21,24 @@
 #define BLAKERYPT_BLOCK_COUNT  (2 * BLAKERYPT_BLOCK_FACTOR)
 
 enum blakerypt_sizes {
-    BLAKERYPT_BLOCK_BYTES    = (BLAKE2B_OUTBYTES * BLAKERYPT_BLOCK_COUNT),
+    BLAKERYPT_BLOCK_BYTES    = BLAKE2B_OUTBYTES * BLAKERYPT_BLOCK_COUNT,
     BLAKERYPT_OUT_BYTES      = BLAKE2B_OUTBYTES,
-    BLAKERYPT_KEY_BYTES      = sizeof(size_t),
+    BLAKERYPT_KEY_BYTES      = BLAKE2B_OUTBYTES,
     BLAKERYPT_SALT_BYTES     = BLAKE2B_SALTBYTES,
     BLAKERYPT_PERSONAL_BYTES = BLAKE2B_PERSONALBYTES
 };
 
-enum blakerypt_mode {
+enum blakerypt_modes {
     BLAKERYPT_MODE_HASH_PASSWORD = 0x00,
     BLAKERYPT_MODE_DERIVE_KEY    = 0x01
 };
 
 typedef struct __blakerypt_param {
-    enum blakerypt_mode mode;
-    uint8_t             f_time;
-    uint8_t             f_space;
-    uint32_t            key_id;
-    uint8_t             personal[BLAKERYPT_PERSONAL_BYTES];
+    enum blakerypt_modes mode;
+    uint8_t              f_time;
+    uint8_t              f_space;
+    uint32_t             key_id;
+    uint8_t              personal[BLAKERYPT_PERSONAL_BYTES];
 } blakerypt_param;
 
 int blakerypt_core(
