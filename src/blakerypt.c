@@ -31,6 +31,16 @@ typedef struct __blakerypt_rom {
     uint8_t const (*rom)[BLAKERYPT_BLOCK_BYTES];
 } blakerypt_rom;
 
+static inline void blakerypt_zero(
+    void * const buffer,
+    size_t       bytes
+) {
+    volatile uint8_t *buffer_p = buffer;
+
+    while(bytes--)
+        *buffer_p++ = 0;
+}
+
 static inline void blakerypt_block_xor(
     uint8_t       * const restrict out,
     uint8_t const * const restrict in1,
@@ -149,8 +159,8 @@ static int blakerypt_rom_mix(
         }
     }
 
-    memset(out_tmp,    0, sizeof(out_tmp));
-    memset(&rom_index, 0, sizeof(rom_index));
+    blakerypt_zero(out_tmp,    sizeof(out_tmp));
+    blakerypt_zero(&rom_index, sizeof(rom_index));
 
     return 0;
 
@@ -207,11 +217,11 @@ static blakerypt_rom const * blakerypt_rom_new(
 }
 
 static void blakerypt_rom_free(
-    blakerypt_rom const * const rom
+    blakerypt_rom const * const restrict rom
 ) {
-    memset((void *) rom->rom, 0, rom->blocks * BLAKERYPT_BLOCK_BYTES);
-    free(  (void *) rom->rom);
-    free(  (void *) rom);
+    blakerypt_zero((void *) rom->rom, rom->blocks * BLAKERYPT_BLOCK_BYTES);
+    free((void *) rom->rom);
+    free((void *) rom);
 }
 
 int blakerypt_core(
