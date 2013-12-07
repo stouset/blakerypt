@@ -141,11 +141,14 @@ static int blakerypt_rom_mix(
 
     for(size_t i = 0; i < iterations; ++i) {
         for(size_t j = 0; j < rom->blocks; ++j) {
+            /* the number of times this line has been run */
             rom_index = rom->blocks * i + j;
 
+            /* MAC the key and the loop counter to determine which
+               ROM index to use */
             blake2b(
-                rom_index_ptr,         rom_index_ptr,         key,
-                sizeof(rom_index_ptr), sizeof(rom_index_ptr), BLAKERYPT_KEY_BYTES
+                rom_index_ptr,     rom_index_ptr,     key,
+                sizeof(rom_index), sizeof(rom_index), BLAKERYPT_KEY_BYTES
             );
 
             blakerypt_block_xor(
