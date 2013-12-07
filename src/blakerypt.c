@@ -141,7 +141,7 @@ static int blakerypt_rom_mix(
 
     for(size_t i = 0; i < iterations; ++i) {
         for(size_t j = 0; j < rom->blocks; ++j) {
-            rom_index = rom->blocks * j + i;
+            rom_index = rom->blocks * i + j;
 
             blake2b(
                 rom_index_ptr,         rom_index_ptr,         key,
